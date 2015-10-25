@@ -1,0 +1,12 @@
+parser: babel-eslint
+
+plugins:
+  - react
+
+ecmaFeatures:
+  jsx: true
+  modules: true
+
+env:
+  browser: true
+  jquery: true

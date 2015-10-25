@@ -1,0 +1,22 @@
+@()
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Index</title>
+    @*
+    <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/main.css")" media="screen" charset="utf-8" />
+    *@
+  </head>
+  <body>
+    <h1>Server Time: @(new Date())</h1>
+    <div class="container">
+      <div id="hello"></div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js" charset="utf-8"></script>
+    <script src="//cdn.jsdelivr.net/g/react@@0.14.0(react.min.js+react-dom.min.js)" charset="utf-8"></script>
+    <script src="@routes.Assets.versioned("javascripts/init.js")" charset="utf-8"></script>
+    <script src="@routes.Assets.versioned("javascripts/home.bundle.js")" charset="utf-8"></script>
+  </body>
+</html>
