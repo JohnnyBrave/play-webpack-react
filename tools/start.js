@@ -4,7 +4,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 
 global.watch = true;
-const webpackConfig = require('./config')[0];
+const webpackConfig = require('../webpack.config');
 const bundle = webpack(webpackConfig);
 
 export default async () => {
@@ -32,7 +32,7 @@ export default async () => {
     // no need to watch '*.js' here, webpack will take care of it for us,
     // including full page reloads if HMR won't work
     files: [
-      'public/**/*.css',
+      'public/**/*',
     ],
 
     open: false

@@ -2,6 +2,7 @@ import path from 'path';
 import webpack from 'webpack';
 import merge from 'lodash.merge';
 import ExtractTextPlugin from "extract-text-webpack-plugin";
+import project from './project';
 
 const DEBUG = !process.argv.includes('release');
 const VERBOSE = process.argv.includes('verbose');
@@ -20,39 +21,38 @@ const AUTOPREFIXER_BROWSERS = [
 const JS_LOADER = {
   test: /\.jsx?$/,
   include: [
-    path.resolve(__dirname, '../assets'),
+    path.resolve(__dirname, project.input),
   ],
   exclude: [
-    path.resolve(__dirname, '../node_modules'),
-    path.resolve(__dirname, '../bower_components'),
-    path.resolve(__dirname, '../tools'),
-    path.resolve(__dirname, '../target'),
+    path.resolve(__dirname, './node_modules'),
+    path.resolve(__dirname, './bower_components'),
+    path.resolve(__dirname, './tools'),
+    path.resolve(__dirname, './target'),
   ],
   loader: 'babel',
 };
 
 // Entries
-var entries = {
-  home: './javascripts/home',
-  hello: './javascripts/say',
-};
-
-for (var key in entries) {
-  if (entries.hasOwnProperty(key)) {
-    entries[key] = [
-      ...(WATCH ? [
-        'webpack-hot-middleware/client'
-      ] : []),
-      path.resolve(__dirname, '../assets/', entries[key])
-    ];
+var entries = {}, entry, entryValues;
+Object.keys(project.entries).forEach((key) => {
+  entry = project.entries[key];
+  entries[key] = (WATCH ? [
+    'webpack-hot-middleware/client'
+  ] : []);
+  if (Array.isArray(entry)) {
+    entry.forEach((e) => {
+      entries[key].push(path.resolve(__dirname, project.input, e));
+    });
+  } else {
+    entries[key].push(path.resolve(__dirname, project.input, entry));
   }
-}
+});
 
 // Base configuration
 const baseConfig = {
   output: {
-    path: path.join(__dirname, "../public/javascripts/"),
-    publicPath: "/assets/javascripts/",
+    path: path.join(__dirname, project.output),
+    publicPath: "/assets/",
   },
   cache: false,
   debug: DEBUG,
@@ -81,8 +81,8 @@ const baseConfig = {
       'process.env.NODE_ENV': DEBUG ? '"development"' : '"production"',
       '__DEV__': DEBUG,
     }),
-    new webpack.optimize.CommonsChunkPlugin("init.js"),
-    new ExtractTextPlugin("main.css"),
+    new webpack.optimize.CommonsChunkPlugin(project.commonsChunk),
+    new ExtractTextPlugin(project.commonsCss),
   ],
   module: {
     preLoaders: [
@@ -179,4 +179,4 @@ const appConfig = merge({}, baseConfig, {
   },
 });
 
-export default [appConfig];
+export default appConfig;
