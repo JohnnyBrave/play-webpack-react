@@ -51,7 +51,7 @@ Object.keys(project.entries).forEach((key) => {
 // Base configuration
 const baseConfig = {
   output: {
-    path: path.join(__dirname, project.output),
+    path: path.join(__dirname, (DEBUG ? project.output.debug : project.output.release)),
     publicPath: "/assets/",
   },
   cache: false,
