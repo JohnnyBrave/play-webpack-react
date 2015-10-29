@@ -2,7 +2,7 @@
 const project = {
   input: './assets/',
   output: {
-    debug: './target/webpack-dev/',
+    debug: './target/web/public/main/',
     release: './target/webpack/',
   },
   entries: {

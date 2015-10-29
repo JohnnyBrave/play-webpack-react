@@ -9,12 +9,18 @@ import sbt.Task
 
 object Import {
 
-  val webpack = TaskKey[Pipeline.Stage]("webpack", "Invoke the webpack module bundler.")
-  val webpackDev = TaskKey[Seq[File]]("webpack-dev", "Invoke the webpack module bundler in dev mode.")
+  // For development only, could execute before "run"
+  // eg: run in Compile <<= (run in Compile) dependsOn webpack
+  val webpack = TaskKey[Seq[File]]("webpack", "Invoke the webpack module bundler in dev mode.")
+  // For production
+  val webpackStage = TaskKey[Pipeline.Stage]("webpack-stage", "Invoke the webpack module bundler.")
 
   object WebpackKeys {
-    val outputPath = SettingKey[String]("webpack-output-path", "Path to the generated asset file.")
-    val devOutputPath = SettingKey[String]("webpack-dev-output-path", "Path to the generated asset file in dev mode.")
+    val command = SettingKey[String]("webpack-command", "The webpack command in dev mode.")
+    val outputPath = SettingKey[String]("webpack-output-path", "Path to the generated asset file in dev mode.")
+
+    val stageCommand = SettingKey[String]("webpack-stage-command", "The webpack command.")
+    val stageOutputPath = SettingKey[String]("webpack-stage-output-path", "Path to the generated asset file.")
   }
 
 }
@@ -33,28 +39,24 @@ object SbtWebpack extends AutoPlugin {
   import WebpackKeys._
 
   override def projectSettings = Seq(
-    outputPath := "webpack",
-    devOutputPath := "webpack-dev",
-    webpackDev := webpackDevelop.value,
-    webpack := webpackStage.value
+    command := "npm run build",
+    outputPath := "web/main/public",
+    webpack := webpackDevelopTask.value,
+
+    stageCommand := "npm run build release",
+    stageOutputPath := "webpack",
+    webpackStage := webpackStageTask.value
   )
 
-  def webpackDevelop: Def.Initialize[Task[Seq[File]]] = Def.task {
-    val rc = Process("npm run build", file(".")).!
-    if (rc != 0) {
-      sys.error(s"NPM generated non-zero return code: $rc")
-    }
-
+  def webpackDevelopTask: Def.Initialize[Task[Seq[File]]] = Def.task {
+    exec(command.value)
     Seq()
   }
 
-  def webpackStage: Def.Initialize[Task[Pipeline.Stage]] = Def.task { mappings =>
-    val rc = Process("npm run build release", file(".")).!
-    if (rc != 0) {
-      sys.error(s"NPM generated non-zero return code: $rc")
-    }
+  def webpackStageTask: Def.Initialize[Task[Pipeline.Stage]] = Def.task { mappings =>
+    exec(stageCommand.value)
 
-    val outputDir = target.value / outputPath.value
+    val outputDir = target.value / stageOutputPath.value
     val outputFiles = outputDir ** "*.*"
     val newMappings = outputFiles pair relativeTo(outputDir)
 
@@ -64,4 +66,23 @@ object SbtWebpack extends AutoPlugin {
 
     newMappings ++ other
   }
+
+  // Execute NPM command
+  def exec(cmd: String) = {
+    try {
+      val rc = Process(cmd, file(".")).!
+      if (rc != 0) {
+        sys.error(s"NPM generated non-zero return code: $rc")
+      }
+    } catch {
+      case e: java.io.IOException => {
+        // For windows
+        val rc = Process("cmd /c " + cmd, file(".")).!
+        if (rc != 0) {
+          sys.error(s"NPM generated non-zero return code: $rc")
+        }
+      }
+    }
+  }
+
 }

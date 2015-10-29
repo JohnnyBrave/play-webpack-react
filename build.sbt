@@ -13,6 +13,6 @@ libraryDependencies ++= Seq(
 // other, legacy style, accesses its actions statically.
 routesGenerator := InjectedRoutesGenerator
 
-run in Compile <<= (run in Compile) dependsOn webpackDev
+run in Compile <<= (run in Compile) dependsOn webpack
 
-pipelineStages := Seq(webpack, digest, gzip)
+pipelineStages := Seq(webpackStage, digest, gzip)
